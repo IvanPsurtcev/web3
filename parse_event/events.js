@@ -7,17 +7,31 @@ const myContract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
 
 let options = {
     filter: {
-        to: ['0xd9e1ce17f2641f24ae83637ab66a2cca9c378b9f']
+        to: ['0xfd5ef736e72d2ae58458f235e1135148eeb1b524']
     },
     fromBlock: 0,
     toBlock: 'latest'
 };
 
+const data = {};
+
 (async() => {
   try {
     const events = await myContract.getPastEvents('Transfer', options);
 
-    console.log(events);
+    events.forEach(event => {
+      const price = Web3.utils.fromWei(event.returnValues.value, 'ether');
+
+      if (!data[event.returnValues.from]) {
+        data[event.returnValues.from] = 0;
+      }
+
+      data[event.returnValues.from] += parseFloat(price);
+    });
+
+    let sorted = Object.entries(data).sort((a, b) => b[1] - a[1]);
+
+    console.log(sorted);
   } catch (err) {
     console.error(err);
   }
